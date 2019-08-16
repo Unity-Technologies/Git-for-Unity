@@ -1,0 +1,19 @@
+{
+  "scopedRegistries": [
+    {
+      "name": "Candidates",
+      "url": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
+      "scopes": [
+        "com.unity.git"
+      ]
+    }
+  ],
+  "dependencies": {
+    "com.unity.git.api": "2.0.66-preview",
+    "com.unity.package-manager-ui": "2.1.2",
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.ui": "1.0.0"
+  }
+}
