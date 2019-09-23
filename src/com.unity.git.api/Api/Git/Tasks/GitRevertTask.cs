@@ -7,13 +7,14 @@ namespace Unity.VersionControl.Git.Tasks
         private const string TaskName = "git revert";
         private readonly string arguments;
 
-        public GitRevertTask(string changeset,
+        public GitRevertTask(string changeset, bool allowMergeCommits,
             CancellationToken token, IOutputProcessor<string> processor = null)
             : base(token, processor ?? new SimpleOutputProcessor())
         {
             Guard.ArgumentNotNull(changeset, "changeset");
             Name = TaskName;
-            arguments = $"revert --no-edit {changeset}";
+            var merge = allowMergeCommits ? "-m" : string.Empty;
+            arguments = $"revert --no-edit {merge} {changeset}";
         }
 
         public override string ProcessArguments { get { return arguments; } }

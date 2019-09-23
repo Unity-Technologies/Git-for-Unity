@@ -106,9 +106,10 @@ namespace Unity.VersionControl.Git
         /// Executes `git revert` to perform a revert operation.
         /// </summary>
         /// <param name="changeset">The changeset to revert</param>
+        /// <param name="allowMergeCommits">Set to true if reverting via or to a merge commit</param>
         /// <param name="processor">A custom output processor instance</param>
         /// <returns>String output of git command</returns>
-        ITask<string> Revert(string changeset, IOutputProcessor<string> processor = null);
+        ITask<string> Revert(string changeset, bool allowMergeCommits = false, IOutputProcessor<string> processor = null);
 
         /// <summary>
         /// Executes `git fetch` to perform a fetch operation.
@@ -489,9 +490,9 @@ namespace Unity.VersionControl.Git
         }
 
         ///<inheritdoc/>
-        public ITask<string> Revert(string changeset, IOutputProcessor<string> processor = null)
+        public ITask<string> Revert(string changeset, bool allowMergeCommits = false, IOutputProcessor<string> processor = null)
         {
-            return new GitRevertTask(changeset, cancellationToken, processor)
+            return new GitRevertTask(changeset, allowMergeCommits, cancellationToken, processor)
                 .Configure(processManager);
         }
 
