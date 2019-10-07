@@ -122,25 +122,23 @@ namespace Unity.VersionControl.Git
             return status;
         }
 
-        public string Path => path;
+        [NotSerialized] public string Path => path;
+        [NotSerialized] public string FullPath => fullPath;
+        [NotSerialized] public string ProjectPath => projectPath;
+        [NotSerialized] public string OriginalPath => originalPath;
 
-        public string FullPath => fullPath;
+        [NotSerialized] public GitFileStatus Status => workTreeStatus != GitFileStatus.None ? workTreeStatus : indexStatus;
+        [NotSerialized] public GitFileStatus IndexStatus => indexStatus;
+        [NotSerialized] public GitFileStatus WorkTreeStatus => workTreeStatus;
 
-        public string ProjectPath => projectPath;
+        [NotSerialized] public bool Staged => indexStatus != GitFileStatus.None && !Unmerged && !Untracked && !Ignored;
 
-        public string OriginalPath => originalPath;
-
-        public GitFileStatus Status => workTreeStatus != GitFileStatus.None ? workTreeStatus : indexStatus;
-        public GitFileStatus IndexStatus => indexStatus;
-        public GitFileStatus WorkTreeStatus => workTreeStatus;
-
-        public bool Staged => indexStatus != GitFileStatus.None && !Unmerged && !Untracked && !Ignored;
-
+        [NotSerialized]
         public bool Unmerged => (indexStatus == workTreeStatus && (indexStatus == GitFileStatus.Added || indexStatus == GitFileStatus.Deleted)) ||
                                  indexStatus == GitFileStatus.Unmerged || workTreeStatus == GitFileStatus.Unmerged;
 
-        public bool Untracked => workTreeStatus == GitFileStatus.Untracked;
-        public bool Ignored => workTreeStatus == GitFileStatus.Ignored;
+        [NotSerialized] public bool Untracked => workTreeStatus == GitFileStatus.Untracked;
+        [NotSerialized] public bool Ignored => workTreeStatus == GitFileStatus.Ignored;
 
         public override string ToString()
         {

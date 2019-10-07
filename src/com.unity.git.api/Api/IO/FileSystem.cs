@@ -45,6 +45,7 @@ namespace Unity.VersionControl.Git
 
         char DirectorySeparatorChar { get; }
         string GetProcessDirectory();
+        string Resolve(string path);
     }
 
 
@@ -151,31 +152,30 @@ namespace Unity.VersionControl.Git
             if (searchOption != SearchOption.AllDirectories)
                 yield break;
 
-#if ENABLE_MONO
             if (NPath.IsUnix)
             {
                 try
                 {
-                    path = Mono.Unix.UnixPath.GetCompleteRealPath(path);
+                    path = Resolve(path);
                 }
                 catch
                 {}
             }
-#endif
+
             foreach (var dir in GetDirectories(path))
             {
                 var realdir = dir;
-#if ENABLE_MONO
+
                 if (NPath.IsUnix)
                 {
                     try
                     {
-                        realdir = Mono.Unix.UnixPath.GetCompleteRealPath(dir);
+                        realdir = Resolve(dir);
                     }
                     catch
                     {}
                 }
-#endif
+
                 if (path != realdir)
                 {
                     foreach (var file in GetFiles(dir, pattern, searchOption))
@@ -290,9 +290,48 @@ namespace Unity.VersionControl.Git
             return new FileStream(path, mode);
         }
 
-        public char DirectorySeparatorChar
+        public string Resolve(string path) => GetCompleteRealPath(path);
+
+        private static Func<string, string> getCompleteRealPathFunc = null;
+
+        private static Func<string, string> GetCompleteRealPath
         {
-            get { return Path.DirectorySeparatorChar; }
+            get
+            {
+                if (getCompleteRealPathFunc == null)
+                {
+#if ENABLE_MONO
+                    getCompleteRealPathFunc = path => new NPath(Mono.Unix.UnixPath.GetCompleteRealPath(path));
+#else
+                    var asm = AppDomain.CurrentDomain.GetAssemblies()
+					                   .FirstOrDefault(x => x.FullName.StartsWith("Mono.Posix"));
+					if (asm != null)
+					{
+						var type = asm.GetType("Mono.Unity.UnixPath");
+						if (type != null)
+						{
+							var method = type.GetMethod("GetCompleteRealPath",
+								BindingFlags.Static | BindingFlags.Public);
+							if (method != null)
+							{
+								getCompleteRealPathFunc = (p) => {
+									var ret = method.Invoke(null, new object[] { p.ToString() });
+									if (ret != null)
+										return ret.ToString();
+									return p;
+								};
+							}
+						}
+					}
+
+					if (getCompleteRealPathFunc == null)
+						getCompleteRealPathFunc = p => p;
+#endif
+                }
+                return getCompleteRealPathFunc;
+            }
         }
+
+        public char DirectorySeparatorChar => Path.DirectorySeparatorChar;
     }
 }

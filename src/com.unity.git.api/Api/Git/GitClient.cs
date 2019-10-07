@@ -338,12 +338,14 @@ namespace Unity.VersionControl.Git
         private readonly IEnvironment environment;
         private readonly IProcessManager processManager;
         private readonly CancellationToken cancellationToken;
+        private readonly GitObjectFactory gitObjectFactory;
 
         public GitClient(IEnvironment environment, IProcessManager processManager, CancellationToken cancellationToken)
         {
             this.environment = environment;
             this.processManager = processManager;
             this.cancellationToken = cancellationToken;
+            gitObjectFactory = new GitObjectFactory(this.environment);
         }
 
         ///<inheritdoc/>
@@ -363,7 +365,7 @@ namespace Unity.VersionControl.Git
         ///<inheritdoc/>
         public ITask<GitStatus> Status(IOutputProcessor<GitStatus> processor = null)
         {
-            return new GitStatusTask(new GitObjectFactory(environment), cancellationToken, processor)
+            return new GitStatusTask(gitObjectFactory, cancellationToken, processor)
                 .Configure(processManager);
         }
 
@@ -377,7 +379,7 @@ namespace Unity.VersionControl.Git
         ///<inheritdoc/>
         public ITask<List<GitLogEntry>> Log(BaseOutputListProcessor<GitLogEntry> processor = null)
         {
-            return new GitLogTask(new GitObjectFactory(environment), cancellationToken, processor)
+            return new GitLogTask(gitObjectFactory, cancellationToken, processor)
                 .Configure(processManager)
                 .Catch(exception => exception is ProcessException &&
                     exception.Message.StartsWith("fatal: your current branch") &&
@@ -393,7 +395,7 @@ namespace Unity.VersionControl.Git
                 return new FuncTask<List<GitLogEntry>>(cancellationToken, () => new List<GitLogEntry>(0));
             }
 
-            return new GitLogTask(file, new GitObjectFactory(environment), cancellationToken, processor)
+            return new GitLogTask(file, gitObjectFactory, cancellationToken, processor)
                 .Configure(processManager)
                 .Catch(exception => exception is ProcessException &&
                     exception.Message.StartsWith("fatal: your current branch") &&
@@ -478,7 +480,7 @@ namespace Unity.VersionControl.Git
         ///<inheritdoc/>
         public ITask<List<GitLock>> ListLocks(bool local, BaseOutputListProcessor<GitLock> processor = null)
         {
-            return new GitListLocksTask(local, cancellationToken, processor)
+            return new GitListLocksTask(local, gitObjectFactory, cancellationToken, processor)
                 .Configure(processManager);
         }
 

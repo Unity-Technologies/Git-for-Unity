@@ -1,5 +1,6 @@
 using Unity.VersionControl.Git;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -76,6 +77,24 @@ namespace Unity.VersionControl.Git
             UserSettings = new UserSettings(this);
             LocalSettings = new LocalSettings(this);
             SystemSettings = new SystemSettings(this);
+            UnityInlinePackagesPaths = new Dictionary<NPath, NPath>();
+
+            var upmManifest = UnityProjectPath.Combine("Packages/manifest.json");
+            if (!upmManifest.FileExists())
+                return;
+
+            try
+            {
+                var packages = upmManifest.ReadAllText().FromJson<Dictionary<string, Dictionary<string, string>>>();
+                if (packages.TryGetValue("dependencies", out var deps))
+                {
+                    foreach (var dep in deps.Where(x => !string.IsNullOrWhiteSpace(x.Value) && x.Value.StartsWith("file:") && UnityProjectPath.Combine("Packages", x.Value.Substring(5)).DirectoryExists()))
+                    {
+                        UnityInlinePackagesPaths.Add(UnityProjectPath.Combine("Packages", dep.Value.Substring(5)).RelativeTo(UnityProjectPath), $"Packages/{dep.Key}".ToNPath());
+                    }
+                }
+            }
+            catch {}
         }
 
         public void InitializeRepository(NPath? repositoryPath = null)
@@ -144,6 +163,7 @@ namespace Unity.VersionControl.Git
         public NPath UnityApplicationContents { get; set; }
         public NPath UnityAssetsPath { get; set; }
         public NPath UnityProjectPath { get; set; }
+        public Dictionary<NPath, NPath> UnityInlinePackagesPaths { get; set; }
         public NPath ExtensionInstallPath { get; set; }
         public NPath UserCachePath { get; set; }
         public NPath SystemCachePath { get; set; }

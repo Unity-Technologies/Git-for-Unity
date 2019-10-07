@@ -9,8 +9,9 @@ namespace Unity.VersionControl.Git.Tasks
         private readonly string args;
 
         public GitListLocksTask(bool local,
+            IGitObjectFactory gitObjectFactory,
             CancellationToken token, BaseOutputListProcessor<GitLock> processor = null)
-            : base(token, processor ?? new LocksOutputProcessor())
+            : base(token, processor ?? new LocksOutputProcessor(gitObjectFactory))
         {
             Name = TaskName;
             args = "lfs locks --json";

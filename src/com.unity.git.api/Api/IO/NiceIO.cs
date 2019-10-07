@@ -651,7 +651,9 @@ namespace Unity.VersionControl.Git
             if (!IsRelative)
                 return this;
 
-            return NPath.CurrentDirectory.Combine(this);
+            // Unity has a virtual filesystem that remaps certain paths in all IO calls, so we need
+            // to query mono to know what the real path is
+            return FileSystem.GetFullPath(CurrentDirectory.Combine(this).ToString()).ToNPath();
         }
 
         NPath CopyWithDeterminedDestination(NPath absoluteDestination, Func<NPath, bool> fileFilter)
@@ -1205,16 +1207,21 @@ namespace Unity.VersionControl.Git
             return new NPath(path);
         }
 
+        /// <summary>
+        /// Fully resolve a path, including symlinks.
+        /// </summary>
         public static NPath Resolve(this NPath path)
         {
-            // Add a reference to Mono.Posix with an .rsp file in the Assets folder with the line "-r:Mono.Posix.dll" for this to work
-#if ENABLE_MONO
-			if (!path.IsInitialized || !NPath.IsUnix /* nothing to resolve on windows */ || path.IsRelative || !path.FileExists())
-				return path;
-			return new NPath(Mono.Unix.UnixPath.GetCompleteRealPath(path.ToString()));
-#else
-            return path;
-#endif
+            if (!path.IsInitialized || !path.Exists())
+                return path;
+
+            if (path.IsRelative)
+                path = path.MakeAbsolute();
+            else
+                path = NPath.FileSystem.GetFullPath(path).ToNPath();
+
+            // resolve symlinks
+            return NPath.FileSystem.Resolve(path.ToString()).ToNPath();
         }
 
         public static string CalculateMD5(this NPath path)

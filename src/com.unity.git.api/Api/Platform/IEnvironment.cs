@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Unity.VersionControl.Git
 {
@@ -45,6 +46,7 @@ namespace Unity.VersionControl.Git
         ISettings LocalSettings { get; }
         ISettings SystemSettings { get; }
         ISettings UserSettings { get; }
+        Dictionary<NPath, NPath> UnityInlinePackagesPaths { get; set; }
         string GetEnvironmentVariableKey(string name);
     }
 }

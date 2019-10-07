@@ -73,7 +73,7 @@ namespace Unity.VersionControl.Git
                 selectedEntry = value;
 
                 var activeObject = selectedEntry != null && selectedEntry.GitLock != GitLock.Default && projectPath.IsInitialized
-                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.Path.MakeAbsolute().RelativeTo(projectPath))
+                    ? AssetDatabase.LoadMainAssetAtPath(selectedEntry.GitLock.ProjectPath.ToString(SlashMode.Forward))
                     : null;
 
                 lastActivatedObject = activeObject;
@@ -243,8 +243,7 @@ namespace Unity.VersionControl.Git
 
                 var gitLockEntry = new GitLockEntry(gitLock, gitFileStatus);
                 LoadIcon(gitLockEntry, true);
-                var path = gitLock.Path.MakeAbsolute().RelativeTo(projectPath);
-                var assetGuid = AssetDatabase.AssetPathToGUID(path);
+                var assetGuid = AssetDatabase.AssetPathToGUID(gitLock.ProjectPath.ToString(SlashMode.Forward));
                 if (!string.IsNullOrEmpty(assetGuid))
                 {
                     assets.Add(assetGuid, gitLockEntry);

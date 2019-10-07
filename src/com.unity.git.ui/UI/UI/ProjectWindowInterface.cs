@@ -263,10 +263,7 @@ namespace Unity.VersionControl.Git
             guidsLocks.Clear();
             foreach (var lck in locks)
             {
-                NPath repositoryPath = lck.Path;
-                NPath assetPath = manager.Environment.GetAssetPath(repositoryPath);
-
-                var g = AssetDatabase.AssetPathToGUID(assetPath);
+                var g = AssetDatabase.AssetPathToGUID(lck.ProjectPath.ToString(SlashMode.Forward));
                 guidsLocks.Add(g);
             }
 
