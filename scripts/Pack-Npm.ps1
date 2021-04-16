@@ -11,7 +11,7 @@ if ($Trace) {
 
 . $PSScriptRoot\helpers.ps1 | out-null
 
-$srcDir = Join-Path $rootDirectory 'build\packages'
+$srcDir = Join-Path $rootDirectory 'src'
 
 $targetDir = Join-Path $rootDirectory 'build\npm'
 
@@ -20,16 +20,6 @@ New-Item -itemtype Directory -Path $targetDir -Force -ErrorAction SilentlyContin
 
 try {
 	Push-Location (Join-Path $srcDir "com.unity.git")
-	$package = Invoke-Command -Fatal { & npm pack -q }
-	$package = "$package".Trim()
-	$tgt = Join-Path $targetDir $package
-	Move-Item $package $tgt -Force
-} finally {
-    Pop-Location
-}
-
-try {
-	Push-Location (Join-Path $srcDir "com.unity.git.tests")
 	$package = Invoke-Command -Fatal { & npm pack -q }
 	$package = "$package".Trim()
 	$tgt = Join-Path $targetDir $package
